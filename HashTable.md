@@ -60,7 +60,7 @@ Los separadores no pueden formar parte de las palabras, y al procesar el fichero
 Estudiar la información (man) correspondiente a las funciones 
 [`isalpha()`](https://en.cppreference.com/w/cpp/string/byte/isalpha), 
 [`isalnum()`](https://en.cppreference.com/w/cpp/string/byte/isalnum) y similares de C++, por 
-si le resultara conveniente utilizarlas. 
+si resultara conveniente utilizarlas. 
 Asimismo se recomienda estudiar la información de la clase [string](https://en.cppreference.com/w/cpp/string/basic_string).
 Particularmente pueden resultar de interés los métodos que permiten comparar y copiar cadenas.
 
@@ -72,7 +72,7 @@ Para asociar el número a la palabra, se sumarán los valores numéricos (códig
 correspondientes a cada uno de sus caracteres, ponderando estas sumas
 ([*character folding*](https://en.wikipedia.org/wiki/Hash_function#Character_folding)).
 
-La tabla consistirá en un vector de tamaño fijo (`kSizeTable`), cada uno de cuyos elementos será un puntero a una lista enlazada.
+La tabla consistirá en un vector (`std::array`) de tamaño fijo (`kSizeTable`), cada uno de cuyos elementos será un puntero a una lista enlazada.
 En este caso las colisiones se resolverán mediante `encadenamiento directo`: cuando a dos
 palabras les corresponda la misma posición en la tabla hash, las palabras deberán aparecer encadenadas
 en la lista apuntada por el puntero correspondiente a esa posición, tal como muestra la figura \ref{fig:tabla}.

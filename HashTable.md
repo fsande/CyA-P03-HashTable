@@ -28,179 +28,177 @@ a resolver dichas dudas.
 También el profesorado de la asignatura intervendrá en las discusiones que pudieran suscitarse, si fuera necesario.
     
 ### Introducción
+Una [tabla hash](https://en.wikipedia.org/wiki/Hash_table) o tabla de dispersión es una estructura de datos que asocia claves con valores. 
+La operación principal que soporta de manera eficiente es la búsqueda: permite el acceso a los valores (teléfono y dirección, por ejemplo) 
+almacenados a partir de una clave generada (usando el nombre o número de cuenta, por ejemplo). 
+Funciona transformando la clave mediante una [función hash](https://en.wikipedia.org/wiki/Hash_function)
+en un número (hash) que identifica la posición en que la tabla hash almacena el valor correspondiente
+a la clave.
+
+Las tablas hash se suelen implementar mediante vectores unidimensionales, aunque hay otras implementaciones posibles. 
+Como en el caso de los arrays, las tablas hash permiten tiempo de búsqueda constante, en promedio O(1)
+independientemente del número de elementos almacenados en la tabla. 
+
+Comience por visualizar [este vídeo](http://www.upv.es/visor/media/5199057f-ae11-a340-b7b1-50fc9da12159/c) que
+introduce los conceptos más relevantes de las tablas hash.
 
 ### Ejercicio práctico
-Diseñar e implementar un programa en C++ que lea todas las palabras de un fichero de texto y las incluya en una tabla hash.
+Diseñar e implementar un programa `words_in_file.cc` en C++ que lea todas las palabras de un fichero de texto y las incluya en una tabla hash.
+El programa se ejecutará como:
+
+`./words_in_file infile.txt`
+
+y en caso de ejecutarse sin pasar argumentos en la línea de comandos, debe imprimir en pantalla un mensaje
+indicando la forma correcta de uso.
+
 Se considerará una palabra cualquier secuencia de caracteres delimitados por separadores. 
 Se considerarán separadores los siguientes caracteres: espacio(' '), nueva línea ('\n'), 
 tabulador ('\t'), salto de página ('\f'), retorno de carro ('\r'), coma (','), punto ('.'), 
 punto y coma (';') o dos puntos (':'). 
 
 Los separadores no pueden formar parte de las palabras, y al procesar el fichero de texto, deberán ignorarse. 
-Estudiar la información (man) correspondiente a las funciones `isalpha()`, `isnum()` y similares de C++, por 
+Estudiar la información (man) correspondiente a las funciones 
+[`isalpha()`](https://en.cppreference.com/w/cpp/string/byte/isalpha), 
+[`isalnum()`](https://en.cppreference.com/w/cpp/string/byte/isalnum) y similares de C++, por 
 si le resultara conveniente utilizarlas. 
-Asimismo se recomienda buscar información sobre las funciones de C++ definidas en `string.h`. 
-Más concretamente, pueden resultar de interés las funciones `strcpy` y `strcmp`.
+Asimismo se recomienda estudiar la información de la clase [string](https://en.cppreference.com/w/cpp/string/basic_string).
+Particularmente pueden resultar de interés los métodos que permiten comparar y copiar cadenas.
 
-El tamaño de la tabla hash vendrá dado por un valor `SIZE\_TABLE`, que debe ser un número primo.
+El tamaño de la tabla hash vendrá dado por una constante `kSizeTable`, que debe ser un número primo.
 
 La función hash a utilizar será del tipo módulo: a cada palabra se le asociará un número, 
 y el valor hash para la palabra será el resto de dividir dicho número por el tamaño de la tabla. 
 Para asociar el número a la palabra, se sumarán los valores numéricos (códigos ASCII) 
-correspondientes a cada uno de sus caracteres, ponderando estas sumas (véase el código de la función
-`hash` en la figura \ref{code:funcionhash`).
+correspondientes a cada uno de sus caracteres, ponderando estas sumas
+([*character folding*](https://en.wikipedia.org/wiki/Hash_function#Character_folding)).
 
-La tabla consistirá en un vector, cada uno de cuyos elementos será una estructura (`struct`)
-que contendrá dos campos: una cadena de caracteres de un cierto tamaño, y un número asociado con la
-cadena: 
+La tabla consistirá en un vector de tamaño fijo (`kSizeTable`), cada uno de cuyos elementos será un puntero a una lista enlazada.
+En este caso las colisiones se resolverán mediante `encadenamiento directo`: cuando a dos
+palabras les corresponda la misma posición en la tabla hash, las palabras deberán aparecer encadenadas
+en la lista apuntada por el puntero correspondiente a esa posición, tal como muestra la figura \ref{fig:tabla}.
+%%%%%%%%%%%%%%%%%%%%% Fig. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\centerline{\includegraphics[width=10cm]{tabla_hash}}
+\caption{Estructura de la tabla hash}
+\label{fig:tabla}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{lstlisting}
-struct elem {char word[LEN_CADENAS]; unsigned num;};
-\end{lstlisting}
+La figura \ref{code:hash.h} muestra el contenido del fichero `hash.h` en el
+que se definen la clases `HashTable` y `list`. 
 
-En la cadena se almacenarán los caracteres de la cadena que se insertan en la tabla, y en
-el campo numérico se puede almacenar cualquier valor numérico asociado con la cadena, por 
-ejemplo el número de línea en que la cadena aparece en el texto.
+La clase `HashTable` contiene 2 atributos privados: el tamaño de la tabla 
+y un puntero a listas, llamado `tabla`. 
+Este puntero se utilizará para construir, de forma dinámica un vector de listas, es
+decir, un vector donde cada uno de sus elementos será un objeto lista.
 
-La resolución de colisiones se llevará a cabo mediante *direccionamiento abierto*:
-si el slot en el que se pretende insertar una palabra resulta que ya está ocupado, la estrategia
-que se sigue es buscar el siguiente slot que esté libre (teniendo en cuenta no desbordar la
-tabla).
-Para usar este método será necesario inicializar de alguna manera todas las posiciones de la tabla. 
-Por ejemplo, se puede colocar inicialmente la cadena vacía (``'') en todas las posiciones.
+Los métodos que suministra esta clase son el constructor, el destructor y métodos
+para insertar, buscar y eliminar una palabra de la tabla.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{lstlisting}[caption={El fichero hash2.h},label=code:hash2.h]    
-#include <iostream.h>
+El método `hash` es el encargado de calcular la posición que le corresponde
+en la tabla a la cadena que se le pasa como parámetro.
 
-const unsigned LEN_CADENAS = 30; 
-const unsigned SIZE_TABLE = 1021;
-struct elem {char word[LEN_CADENAS]; unsigned num;};
+Obsérvese que algunos de los métodos de la clase `HashTable` (por ejemplo `find`,
+definido en la línea 30) llevan el cualificador `const`. 
+Recuerde que cuando un método está cualificado como `const` el método no puede modificar ninguno de los atributos
+de la clase. 
+Por otra parte, un método cualificado `const` puede ser invocado por objetos
+constantes y no constantes.
 
-class HashTable {
-public:
-   HashTable(unsigned len = SIZE_TABLE);
-   ~HashTable(){delete[] a;} 
-   void insert(const char *s, unsigned num);
-   elem *find(const char *s);
-private:
-   unsigned hash(const char *s);
-   unsigned size_table;
-   elem *a;
-};
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-La figura \ref{code:hash2.h} muestra el contenido del fichero `hash2.h` en el
-que se define la clase `HashTable`.
+El fichero `hash.h` también contiene las definiciones correspondientes a la clase
+`list`, que se utiliza para gestionar las listas de elementos a las que apuntan las 
+casillas de la tabla hash.
 
-La clase contiene 2 atributos privados: el tamaño de la tabla (`SIZE\_TABLE`),
-y un vector de elementos (realmente es un puntero a elemento,
-que correspondería con el primero de los elementos del vector), `*a`.
-
-Como métodos públicos la clase tiene un constructor, un destructor y dos métodos para
-inserción y borrado.
-
-El método privado `hash` es el que calcula el valor hash
-correspondiente a una determinada cadena, y su código aparece en la figura  \ref{code:funcionhash`,
-que es parte del fichero `hash.C`.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{lstlisting}[caption={El método `hash}},label=code:funcionhash]
-unsigned HashTable::hash(const char *s) {
-   unsigned sum = 0;
-   for (unsigned i = 0; s[i] != '\0'; i++)
-     sum += (i + 1) * unsigned(s[i]);
-   return sum % size_table;
-}
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+El único atributo de una lista es un puntero `pStart` a elementos siendo los elementos
+la estructura que se define en la línea 4, que consta de un puntero a caracteres (para almacenar la cadena),
+un campo numérico `num` en el que se puede almacenar cualquier valor numérico asociado con la cadena, por
+ejemplo el número de línea en que la cadena aparece en el texto, y un puntero
+al siguiente nodo de la lista.
 
 Para la implementación de esta práctica lo/as alumno/as deberán codificar el contenido
-del fichero `hash.C`. Este fichero deberá contener la implementación del resto
-de los métodos definidos en `hash2.h`, es decir:
+del fichero `hash.C`. Este fichero deberá contener la implementación de todos
+los métodos definidos en `hash.h`.
 
-\begin{lstlisting}
-HashTable(unsigned len=1021);
-void insert(const char *s, unsigned num);
-elem *find(const char *s);
-\end{lstlisting}
+Para probar el programa debe diseñarse también un programa cliente que:
+\begin{enumerate}
+\item Leerá desde la línea de comandos un nombre de fichero
+\item Si en la línea de comandos no se suministra un nombre de fichero, se imprimirá un mensaje de error
+y se finalizará la ejecución
+\item Se abrirá el fichero, y se leerán todas las palabras que contenga, insertándolas en la tabla hash
+\item Después el programa entrará en un bucle en el que pedirá al usuario una palabra y le indicará
+si la palabra estaba o no en el fichero, buscándola en la tabla hash
+\item El programa finalizará cuando el usuario introduzca la palabra `FIN` escrita en mayúsculas
+\end{enumerate}
 
-El método `find` deberá devolver un puntero a la tabla de símbolos que
-apuntará al elemento de la tabla que contiene la palabra buscada o bien un
-puntero `NULL` en caso de que no encuentre la palabra en la tabla.
-
-El código que se presenta en la figura \ref{code:programa} es un ejemplo de
-programa que utiliza la clase HashTable. Lee cadenas de un fichero de entrada,
-y sin procesarlas de ninguna manera, las inserta en la tabla hash.
-Luego solicita al usuario que introduzca cadenas y le indica si se encuentran
-o no en la tabla.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{lstlisting}[caption={Un programa que utiliza la clase HashTable},label=code:programa]
-// hash2ap: Hashing con direccionamiento abierto
-//    (Es necesario enlazar con hash2.C)
-//    F. de Sande
-//    Prácticas de TALF 11.Oct.2002
-//
-#include <fstream>
-#include <stdlib.h>
-#include <iomanip>
-#include <string>
-#include "hash2.h"
-
-const unsigned SIZE = 631;
-
-int main(int argc, char *argv) {
-   ifstream Fichero("hash.txt", ios::in);
-   if (!Fichero) {
-      cout << "Imposible abrir hash.txt.\n";
-      exit(1);
-   }
-   string cadena;
-   elem *p = NULL;
-
-   HashTable Tabla(SIZE);
-   cout << "Datos leídos del fichero hash.txt\n" << endl << endl;
-   while (Fichero >> cadena) {
-     cout << "Cadena: " << cadena << endl;
-     Tabla.insert(cadena.c_str(), 5);
-   }
-
-   cout << endl;
-
-   for (;;) {
-      cout << "Introduzca una palabra o ! para salir: ";
-      cin >> cadena;
-      if (!cadena.compare("!"))
-        break;  // Salimos del bucle
-      p = Tabla.find(cadena.c_str());
-      if (p)
-         cout << "La palabra SÍ estaba en el fichero " << endl;
-      else cout << "No la he encontrado." << endl;
-   }
-
-   return 0;
-}
+\begin{lstlisting}[caption={El fichero hash.h},label=code:hash.h]     
+1  #include <iostream.h>
+2  #include <stdlib.h>
+3  
+4  struct elem{char *name; unsigned num; elem *next;};
+5  
+6  class list {
+7  public:
+8     list();
+9     ~list();
+10    void RemoveNode(const char *s);
+11    void ListInsert(const char *s, unsigned num);
+12    elem *FindPosition(const char *s)const;
+13    void remove(elem *p);
+14    list(const list& s) {
+15      cout << "La copia no está permitida." << endl; exit(1);
+16    }
+17    list &operator=(const list &s) {
+18      cout << "La asignación no está permitida." << endl; exit(1);
+19      return *this;
+20    }
+21 private:
+22    elem *pStart;
+23 };
+24 
+25 class HashTable {
+26 public:
+27    HashTable(unsigned len=1021);
+28    ~HashTable();
+29    void insert(const char *s, unsigned num);
+30    elem *find(const char *s) const;
+31    void remove(const char *s);
+32    unsigned hash(const char *s) const;
+33 private:
+34    unsigned size_table;
+35    list *tabla;
+36 };
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-En el caso del programa que se debe desarrollar, antes de insertar las cadenas en
-la tabla hash, habrá que eliminar los separadores de las cadenas.
+Enumeramos a continuación los pasos que habitualmente se siguen cuando se utiliza una metodología orientada
+a objetos en el diseño de un programa:
+\begin{enumerate}
+\item En el ámbito de aplicación de su programa, identifique las entidades (objetos) y sus atributos (datos).
+\item Determine las acciones que pueden realizarse sobre un objeto.
+\item Determine las acciones que un objeto puede realizar sobre otros objetos.
+\item Determine las partes de cada objeto que serán visibles a otros objetos, qué partes serán públicas y cuáles
+privadas.
+\item Defina la interface pública de cada objeto.
+\end{enumerate}
 
-Para más información sobre la técnica de hashing, podemos recomendar la obra ya clásica
-*Algoritmos + Estructuras de Datos = Programas* de N. Wirth.
+Como mejora opcional para la implementación de esta práctica, l@s alumn@s podrían estudiar los aspectos comunes
+que encuentren entre ésta implementación y la que realizaron en la práctica anterior, y utilizando
+programación genérica tratar de diseñar una clase que soporte tablas hash en las que se pueda almacenar
+diferentes tipos de estructuras de datos.
+
+Otra posibilidad es implementar, también utilizando programación genérica una clase lista en la que se pueda almacenar
+diferentes tipos de elementos.
+\end{document}
 
 
 
-
-
-
-`./set_calculator infile.txt outfile.txt`
 
 ### Referencias
+* [Hash table](https://en.wikipedia.org/wiki/Hash_table)
+* [Hash function](https://en.wikipedia.org/wiki/Hash_function)
+* [Vídeo Tablas Hash](http://www.upv.es/visor/media/5199057f-ae11-a340-b7b1-50fc9da12159/c) Universidad
+ Politécnica de Valencia
 
-
-
-
+* [String class](http://www.cplusplus.com/reference/string/string/)
 
 * [Standard Template Library](http://www.cplusplus.com/reference/stl/)
 * [Fundamental types](https://en.cppreference.com/w/cpp/language/types)

@@ -44,12 +44,17 @@ introduce los conceptos más relevantes de las tablas hash.
 
 ### Ejercicio práctico
 Diseñar e implementar un programa `words_in_file.cc` en C++ que lea todas las palabras de un fichero de texto y las incluya en una tabla hash.
+De un segundo fichero de texto leerá una lista de palabras y escribirá en un tercer
+fichero la misma lista de palabras cada una de las cuales irá seguida de un texto `Sí / No` que indicará si la
+palabra en cuestión se encontraba en el fichero de entrada.
+
 El programa se ejecutará como:
 
-`./words_in_file infile.txt`
+`./words_in_file infile.txt words.txt outfile.txt`
 
-y en caso de ejecutarse sin pasar argumentos en la línea de comandos, debe imprimir en pantalla un mensaje
-indicando la forma correcta de uso.
+Donde `infile.txt` es el fichero que contiene el texto original, `words.txt` es el fichero que contiene la
+lista de palabras (una palabra por línea) a buscar y `outfile.txt` es el fichero de salida en el que el
+programa indica si cada una de las palabras de `words.txt` se encontraba o no en el texto de entrada.
 
 Se considerará una palabra cualquier secuencia de caracteres delimitados por separadores. 
 Se considerarán separadores los siguientes caracteres: espacio(' '), nueva línea ('\n'), 
@@ -84,55 +89,47 @@ Este puntero se utilizará para construir, de forma dinámica un vector de lista
 decir, un vector donde cada uno de sus elementos será un objeto lista.
 
 Algunos de los métodos que suministra esta clase han de ser al menos el constructor, el destructor y métodos
-para insertar, buscar y eliminar una palabra de la tabla (`insert`, `find` y `remove`).
+para insertar, buscar y eliminar una palabra de la tabla.
 El método `hash` es el encargado de calcular la posición que le corresponde
 en la tabla a la cadena que se le pasa como parámetro.
 
-Obsérvese que algunos de los métodos de la clase `HashTable` (por ejemplo `find`,
-definido en la línea 30) llevan el cualificador `const`. 
-Recuerde que cuando un método está cualificado como `const` el método no puede modificar ninguno de los atributos de la clase. 
+Obsérvese que algunos de los métodos de la clase `HashTable` (por ejemplo `find`) llevan el cualificador `const`. 
+Recuerde que cuando un método está cualificado como `const` ese método no puede modificar ninguno de los atributos de la clase. 
 Por otra parte, un método cualificado `const` puede ser invocado por objetos constantes y no constantes.
 
-
 El único atributo de una lista es un puntero `pStart` a elementos siendo los elementos
-la estructura que se define en la línea 4, que consta de un puntero a caracteres (para almacenar la cadena),
+la estructura (`struct` que consta de un objeto string para almacenar la cadena,
 un campo numérico `num` en el que se puede almacenar cualquier valor numérico asociado con la cadena, por
-ejemplo el número de línea en que la cadena aparece en el texto, y un puntero
-al siguiente nodo de la lista.
+ejemplo el número de apariciones de la cadena en el texto, y un puntero al siguiente nodo de la lista.
 
-Para la implementación de esta práctica lo/as alumno/as deberán codificar el contenido
-del fichero `hash.C`. Este fichero deberá contener la implementación de todos
-los métodos definidos en `hash.h`.
+Para el desarrollo de la práctica ha de implementar al menos los métodos descritos anteriormente.
+El programa `words_in_file` es un programa cliente (hace uso) de las clases `HashTable` y `List`.
+Este programa:
 
-Para probar el programa debe diseñarse también un programa cliente que:
-\begin{enumerate}
-\item Leerá desde la línea de comandos un nombre de fichero
-\item Si en la línea de comandos no se suministra un nombre de fichero, se imprimirá un mensaje de error
-y se finalizará la ejecución
-\item Se abrirá el fichero, y se leerán todas las palabras que contenga, insertándolas en la tabla hash
-\item Después el programa entrará en un bucle en el que pedirá al usuario una palabra y le indicará
+* Leerá desde la línea de comandos un nombre de fichero
+* Si en la línea de comandos no se suministra un nombre de fichero, se imprimirá un mensaje de error indicando
+  el modo correcto de ejecución del programa y se finalizará la ejecución
+* Se abrirá el fichero, y se leerán todas las palabras que contenga, insertándolas en la tabla hash
+* Después el programa entrará en un bucle en el que pedirá al usuario una palabra y le indicará
 si la palabra estaba o no en el fichero, buscándola en la tabla hash
-\item El programa finalizará cuando el usuario introduzca la palabra `FIN` escrita en mayúsculas
-\end{enumerate}
+* El programa finalizará cuando el usuario introduzca la palabra `FIN` escrita en mayúsculas
 
-```
-#include <iostream>
-#include <stdlib>
- 
-struct elem{char *name; unsigned num; elem *next;};
+```cpp
+struct elem{string name; unsigned num; elem *next;};
  
 class List {
  public:
    List();
    ~List();
-   void RemoveNode(const char *s);
-   void ListInsert(const char *s, unsigned num);
-   elem *FindPosition(const char *s)const;
+   void RemoveNode(const string s);
+   void ListInsert(const string s, unsigned num);
+   elem *FindPosition(const string s) const;
    void remove(elem *p);
-   list(const list& s) {
-     cout << "La copia no está permitida." << endl; exit(1);
+   List(const list& s) {
+     cout << "La copia no está permitida." << endl; 
+		 exit(1);
    }
-   list &operator=(const list &s) {
+   List &operator=(const list &s) {
      cout << "La asignación no está permitida." << endl; exit(1);
      return *this;
    }
@@ -144,10 +141,10 @@ class List {
  public:
    HashTable(unsigned len=1021);
    ~HashTable();
-   void insert(const char *s, unsigned num);
-   elem *find(const char *s) const;
-   void remove(const char *s);
-   unsigned hash(const char *s) const;
+   void insert(const string s, unsigned num);
+   elem *find(const string s) const;
+   void remove(const string s);
+   unsigned hash(const string s) const;
  private:
    unsigned size_table;
    list *tabla;

@@ -75,37 +75,24 @@ correspondientes a cada uno de sus caracteres, ponderando estas sumas
 La tabla consistirá en un vector (`std::array`) de tamaño fijo (`kSizeTable`), cada uno de cuyos elementos será un puntero a una lista enlazada.
 En este caso las colisiones se resolverán mediante `encadenamiento directo`: cuando a dos
 palabras les corresponda la misma posición en la tabla hash, las palabras deberán aparecer encadenadas
-en la lista apuntada por el puntero correspondiente a esa posición, tal como muestra la figura \ref{fig:tabla}.
-%%%%%%%%%%%%%%%%%%%%% Fig. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\centerline{\includegraphics[width=10cm]{tabla_hash}}
-\caption{Estructura de la tabla hash}
-\label{fig:tabla}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+en la lista apuntada por el puntero correspondiente a esa posición, tal como muestra 
+[esta figura](https://raw.githubusercontent.com/fsande/CyA-P03-HashTable/master/tabla_hash.png).
 
-La figura \ref{code:hash.h} muestra el contenido del fichero `hash.h` en el
-que se definen la clases `HashTable` y `list`. 
-
-La clase `HashTable` contiene 2 atributos privados: el tamaño de la tabla 
-y un puntero a listas, llamado `tabla`. 
+Para la realización del programa necesitará apoyarse en sendas clases `HashTable` y `List`.
+La clase `HashTable` ha de contener al menos dos atributos: el tamaño de la tabla y un puntero a listas, llamado `dataTable`. 
 Este puntero se utilizará para construir, de forma dinámica un vector de listas, es
 decir, un vector donde cada uno de sus elementos será un objeto lista.
 
-Los métodos que suministra esta clase son el constructor, el destructor y métodos
-para insertar, buscar y eliminar una palabra de la tabla.
-
+Algunos de los métodos que suministra esta clase han de ser al menos el constructor, el destructor y métodos
+para insertar, buscar y eliminar una palabra de la tabla (`insert`, `find` y `remove`).
 El método `hash` es el encargado de calcular la posición que le corresponde
 en la tabla a la cadena que se le pasa como parámetro.
 
 Obsérvese que algunos de los métodos de la clase `HashTable` (por ejemplo `find`,
 definido en la línea 30) llevan el cualificador `const`. 
-Recuerde que cuando un método está cualificado como `const` el método no puede modificar ninguno de los atributos
-de la clase. 
-Por otra parte, un método cualificado `const` puede ser invocado por objetos
-constantes y no constantes.
+Recuerde que cuando un método está cualificado como `const` el método no puede modificar ninguno de los atributos de la clase. 
+Por otra parte, un método cualificado `const` puede ser invocado por objetos constantes y no constantes.
 
-El fichero `hash.h` también contiene las definiciones correspondientes a la clase
-`list`, que se utiliza para gestionar las listas de elementos a las que apuntan las 
-casillas de la tabla hash.
 
 El único atributo de una lista es un puntero `pStart` a elementos siendo los elementos
 la estructura que se define en la línea 4, que consta de un puntero a caracteres (para almacenar la cadena),
@@ -128,46 +115,44 @@ si la palabra estaba o no en el fichero, buscándola en la tabla hash
 \item El programa finalizará cuando el usuario introduzca la palabra `FIN` escrita en mayúsculas
 \end{enumerate}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{lstlisting}[caption={El fichero hash.h},label=code:hash.h]     
-1  #include <iostream.h>
-2  #include <stdlib.h>
-3  
-4  struct elem{char *name; unsigned num; elem *next;};
-5  
-6  class list {
-7  public:
-8     list();
-9     ~list();
-10    void RemoveNode(const char *s);
-11    void ListInsert(const char *s, unsigned num);
-12    elem *FindPosition(const char *s)const;
-13    void remove(elem *p);
-14    list(const list& s) {
-15      cout << "La copia no está permitida." << endl; exit(1);
-16    }
-17    list &operator=(const list &s) {
-18      cout << "La asignación no está permitida." << endl; exit(1);
-19      return *this;
-20    }
-21 private:
-22    elem *pStart;
-23 };
-24 
-25 class HashTable {
-26 public:
-27    HashTable(unsigned len=1021);
-28    ~HashTable();
-29    void insert(const char *s, unsigned num);
-30    elem *find(const char *s) const;
-31    void remove(const char *s);
-32    unsigned hash(const char *s) const;
-33 private:
-34    unsigned size_table;
-35    list *tabla;
-36 };
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+```
+#include <iostream>
+#include <stdlib>
+ 
+struct elem{char *name; unsigned num; elem *next;};
+ 
+class List {
+ public:
+   List();
+   ~List();
+   void RemoveNode(const char *s);
+   void ListInsert(const char *s, unsigned num);
+   elem *FindPosition(const char *s)const;
+   void remove(elem *p);
+   list(const list& s) {
+     cout << "La copia no está permitida." << endl; exit(1);
+   }
+   list &operator=(const list &s) {
+     cout << "La asignación no está permitida." << endl; exit(1);
+     return *this;
+   }
+ private:
+   elem *pStart;
+ };
+ 
+ class HashTable {
+ public:
+   HashTable(unsigned len=1021);
+   ~HashTable();
+   void insert(const char *s, unsigned num);
+   elem *find(const char *s) const;
+   void remove(const char *s);
+   unsigned hash(const char *s) const;
+ private:
+   unsigned size_table;
+   list *tabla;
+ };
+```
 
 Enumeramos a continuación los pasos que habitualmente se siguen cuando se utiliza una metodología orientada
 a objetos en el diseño de un programa:

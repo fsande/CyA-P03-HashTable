@@ -90,14 +90,14 @@ decir, un vector donde cada uno de sus elementos será un objeto lista.
 
 Algunos de los métodos que suministra esta clase han de ser al menos el constructor, el destructor y métodos
 para insertar, buscar y eliminar una palabra de la tabla.
-El método `hash` es el encargado de calcular la posición que le corresponde
+El método `Hash` es el encargado de calcular la posición que le corresponde
 en la tabla a la cadena que se le pasa como parámetro.
 
 Obsérvese que algunos de los métodos de la clase `HashTable` (por ejemplo `find`) llevan el cualificador `const`. 
 Recuerde que cuando un método está cualificado como `const` ese método no puede modificar ninguno de los atributos de la clase. 
 Por otra parte, un método cualificado `const` puede ser invocado por objetos constantes y no constantes.
 
-El único atributo de una lista es un puntero `pStart` a elementos siendo los elementos
+El único atributo de una lista es un puntero `p_start` a elementos siendo los elementos
 la estructura (`struct` que consta de un objeto string para almacenar la cadena,
 un campo numérico `num` en el que se puede almacenar cualquier valor numérico asociado con la cadena, por
 ejemplo el número de apariciones de la cadena en el texto, y un puntero al siguiente nodo de la lista.
@@ -106,84 +106,63 @@ Para el desarrollo de la práctica ha de implementar al menos los métodos descr
 El programa `words_in_file` es un programa cliente (hace uso) de las clases `HashTable` y `List`.
 Este programa:
 
-* Leerá desde la línea de comandos un nombre de fichero
-* Si en la línea de comandos no se suministra un nombre de fichero, se imprimirá un mensaje de error indicando
+* Leerá desde la línea de comandos tres nombres de fichero
+* Si en la línea de comandos no se suministra esta información, se imprimirá un mensaje de error indicando
   el modo correcto de ejecución del programa y se finalizará la ejecución
-* Se abrirá el fichero, y se leerán todas las palabras que contenga, insertándolas en la tabla hash
-* Después el programa entrará en un bucle en el que pedirá al usuario una palabra y le indicará
-si la palabra estaba o no en el fichero, buscándola en la tabla hash
-* El programa finalizará cuando el usuario introduzca la palabra `FIN` escrita en mayúsculas
+* Se abrirá el primer fichero, y se leerán todas las palabras que contenga, insertándolas en la tabla hash
+* A continuación se leerán las palabras del segundo fichero y se buscarán en la tabla hash, imprimiendo en el
+* tercer fichero (de salida) la indicación de si la palabra en cuestión se encuentra o no en el primero
+
+Se muestra a continuación y exclusivamente a título informativo algunas posibles definiciones para las clases
+que han de desarrollarse así como algunos métodos que cabría encontrar en esas clases.
 
 ```cpp
-struct elem{string name; unsigned num; elem *next;};
+struct elem{string str; unsigned num; elem *next;};
  
 class List {
  public:
    List();
    ~List();
-   void RemoveNode(const string s);
-   void ListInsert(const string s, unsigned num);
-   elem *FindPosition(const string s) const;
-   void remove(elem *p);
-   List(const list& s) {
-     cout << "La copia no está permitida." << endl; 
-		 exit(1);
-   }
-   List &operator=(const list &s) {
-     cout << "La asignación no está permitida." << endl; exit(1);
-     return *this;
-   }
+   void RemoveNode(const string str);
+   void ListInsert(const string str, unsigned num);
+   elem *FindPosition(const string str) const;
+   void Remove(elem *p);
  private:
-   elem *pStart;
+   elem *p_start;
  };
  
  class HashTable {
  public:
-   HashTable(unsigned len=1021);
+   HashTable(unsigned len = kSizeTable);
    ~HashTable();
-   void insert(const string s, unsigned num);
-   elem *find(const string s) const;
-   void remove(const string s);
-   unsigned hash(const string s) const;
+   void Insert(const string str, unsigned num);
+   elem *Find(const string str) const;
+   void Remove(const string str);
+   unsigned Hash(const string str) const;
  private:
    unsigned size_table;
-   list *tabla;
+   List *data_table;
  };
 ```
 
-Enumeramos a continuación los pasos que habitualmente se siguen cuando se utiliza una metodología orientada
+Se enumeran a continuación los pasos que habitualmente se siguen cuando se utiliza una metodología orientada
 a objetos en el diseño de un programa:
-\begin{enumerate}
-\item En el ámbito de aplicación de su programa, identifique las entidades (objetos) y sus atributos (datos).
-\item Determine las acciones que pueden realizarse sobre un objeto.
-\item Determine las acciones que un objeto puede realizar sobre otros objetos.
-\item Determine las partes de cada objeto que serán visibles a otros objetos, qué partes serán públicas y cuáles
-privadas.
-\item Defina la interface pública de cada objeto.
-\end{enumerate}
+* En el ámbito de aplicación de su programa, identifique las entidades (objetos) y sus atributos (datos).
+* Determine las acciones que pueden realizarse sobre un objeto.
+* Determine las acciones que un objeto puede realizar sobre otros objetos.
+* Determine las partes de cada objeto que serán visibles a otros objetos, qué partes serán públicas y cuáles privadas.
+* Defina la interfaz pública de cada objeto.
 
-Como mejora opcional para la implementación de esta práctica, l@s alumn@s podrían estudiar los aspectos comunes
-que encuentren entre ésta implementación y la que realizaron en la práctica anterior, y utilizando
-programación genérica tratar de diseñar una clase que soporte tablas hash en las que se pueda almacenar
-diferentes tipos de estructuras de datos.
-
-Otra posibilidad es implementar, también utilizando programación genérica una clase lista en la que se pueda almacenar
-diferentes tipos de elementos.
-\end{document}
-
-
-
+Como mejora opcional para la implementación de esta práctica, se propone utilizar 
+programación genérica (a través de plantillas, *Templates*) para tratar de diseñar clases que soporten tablas hash y listas en 
+las que se pueda almacenar diferentes tipos de estructuras de datos.
 
 ### Referencias
 * [Hash table](https://en.wikipedia.org/wiki/Hash_table)
 * [Hash function](https://en.wikipedia.org/wiki/Hash_function)
 * [Vídeo Tablas Hash](http://www.upv.es/visor/media/5199057f-ae11-a340-b7b1-50fc9da12159/c) Universidad
  Politécnica de Valencia
-
 * [String class](http://www.cplusplus.com/reference/string/string/)
-
 * [Standard Template Library](http://www.cplusplus.com/reference/stl/)
-* [Fundamental types](https://en.cppreference.com/w/cpp/language/types)
-* [Bitwise Operators in C and C++](https://www.cprogramming.com/tutorial/bitwise_operators.html)
 * [C++ Tutor](http://pythontutor.com/cpp.html#mode=display) Visualización online de la ejecución de código C++
 * [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) Guía de estilo de código 
